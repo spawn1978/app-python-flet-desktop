@@ -64,17 +64,20 @@ async def main(page: ft.Page):
         visible=False,
     )
     result_text = ft.Text(value="", selectable=True, size=15, color=ft.Colors.WHITE)
-    copy_btn = ft.ElevatedButton(
-        text="Copiar letra",
-        icon=ft.icons.COPY,
+    copy_btn = ft.Button(
+        content="Copiar letra",
+        icon=ft.Icons.COPY,
         style=ft.ButtonStyle(
             color=ft.Colors.WHITE,
             bgcolor=ft.Colors.PURPLE_600,
             padding=15,
             shape=ft.RoundedRectangleBorder(radius=10),
         ),
-        visible=False
-    ) 
+        visible=False,
+    )
+    copy_snack = ft.SnackBar(content=ft.Text("Letra copiada al portapapeles"))
+    page.overlay.append(copy_snack)
+
     async def search_click(e):
         if not artist_field.value or not artist_field.value.strip() or not title_field.value or not title_field.value.strip():
             result_text.value = "Por favor ingrese el artista y la cancion."
@@ -84,7 +87,7 @@ async def main(page: ft.Page):
             return
 
         search_btn.disabled = loading.visible = True
-        result_text.value = "Buscando letra..."
+        result_text.value = " Buscando letra..."
         result_text.color = ft.Colors.PURPLE_300
         copy_btn.visible = False
         page.update()
@@ -98,14 +101,15 @@ async def main(page: ft.Page):
         else:
             result_text.value = data.get("lyrics", "Letra no encontrada.")
             result_text.color = ft.Colors.WHITE
+            copy_btn.action = ft.CopyToClipboard(result_text.value)
             copy_btn.visible = True
 
         search_btn.disabled = loading.visible = False
         page.update()
     def copy_click(e):
-        page.set_clipboard(result_text.value)
-        page.show_snack_bar(ft.SnackBar(content=ft.Text("!Letra copiada al portapapeles!")))
+        copy_snack.open = True
         result_text.color = ft.Colors.GREEN_300
+        page.update()
 
     search_btn.on_click = search_click
     copy_btn.on_click = copy_click
@@ -134,10 +138,38 @@ async def main(page: ft.Page):
             border_radius=20,
             width=750,
         ),
+        
+        # Campor de entrada 
         ft.Container(content=artist_field, width=750),
         ft.Container(content=title_field, width=750),
+        
+        # Botones de busqueda y copia
         ft.Row([search_btn, loading], alignment=ft.MainAxisAlignment.CENTER, spacing=15),
+        
+        # Resultado de la busqueda
+        
+        ft.Container(
+            content=ft.Column([result_text], scroll=ft.ScrollMode.AUTO),
+            bgcolor="#1a1a1a",
+            border=ft.Border(
+                top=ft.BorderSide(width=2, color=ft.Colors.PURPLE_800),
+                right=ft.BorderSide(width=2, color=ft.Colors.PURPLE_800),
+                bottom=ft.BorderSide(width=2, color=ft.Colors.PURPLE_800),
+                left=ft.BorderSide(width=2, color=ft.Colors.PURPLE_800),
+            ),
+            border_radius=15,
+            padding=20,
+            width=750,
+            height=230,
+            expand=True,
+            shadow=ft.BoxShadow(
+                spread_radius=1,
+                color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK),
+                offset=ft.Offset(0, 4)
+            )
+        ),
         result_text,
+        copy_btn,
     )
 
 ft.run(main)
