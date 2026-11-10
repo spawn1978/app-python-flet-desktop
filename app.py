@@ -79,12 +79,14 @@ async def main(page: ft.Page):
         if not artist_field.value or not artist_field.value.strip() or not title_field.value or not title_field.value.strip():
             result_text.value = "Por favor ingrese el artista y la cancion."
             result_text.color = ft.Colors.RED_300
+            copy_btn.visible = False
             page.update()
             return
 
         search_btn.disabled = loading.visible = True
         result_text.value = "Buscando letra..."
         result_text.color = ft.Colors.PURPLE_300
+        copy_btn.visible = False
         page.update()
 
         data = await fetch_lyrics(artist_field.value.strip(), title_field.value.strip())
@@ -92,15 +94,22 @@ async def main(page: ft.Page):
         if "error" in data:
             result_text.value = data["error"]
             result_text.color = ft.Colors.RED_300
+            copy_btn.visible = False
         else:
             result_text.value = data.get("lyrics", "Letra no encontrada.")
             result_text.color = ft.Colors.WHITE
+            copy_btn.visible = True
 
         search_btn.disabled = loading.visible = False
         page.update()
+    def copy_click(e):
+        page.set_clipboard(result_text.value)
+        page.show_snack_bar(ft.SnackBar(content=ft.Text("!Letra copiada al portapapeles!")))
+        result_text.color = ft.Colors.GREEN_300
 
     search_btn.on_click = search_click
-
+    copy_btn.on_click = copy_click
+    
     page.add(
         ft.Container(
             content=ft.Column(
